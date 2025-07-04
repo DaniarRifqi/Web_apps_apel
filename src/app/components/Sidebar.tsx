@@ -2,38 +2,68 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Home, ScanLine, FileText, Settings } from "lucide-react"; // Import ikon dari lucide-react
 
-// Daftar menu sidebar
+// Daftar menu sidebar dengan ikon
 const menuItems = [
-  { name: "Home", href: "/dashboard/home" },
-  { name: "Pengertian", href: "/dashboard/pengertian" },
-  { name: "Scan", href: "/dashboard/scan" },
+  { name: "Home", href: "/dashboard/home", icon: Home },
+  { name: "Pengertian", href: "/dashboard/pengertian", icon: FileText },
+  { name: "Scan", href: "/dashboard/scan", icon: ScanLine },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-gray-800 text-white flex flex-col p-4">
-      <div className="text-2xl font-semibold mb-8">Menu</div>
-      <nav>
-        <ul>
-          {menuItems.map((item) => (
-            <li key={item.name} className="mb-4">
+    <aside className="w-64 bg-slate-900 text-slate-200 flex flex-col h-screen">
+      {/* Bagian Logo/Branding */}
+      <div className="flex items-center justify-center h-20 border-b border-slate-700">
+        <ScanLine size={28} className="text-blue-400" />
+        <h1 className="text-xl font-bold ml-3 text-slate-50">DryApple-Scan</h1>
+      </div>
+
+      {/* Wrapper untuk menu utama dan menu bawah */}
+      <div className="flex flex-col justify-between flex-grow p-4">
+        {/* Menu Navigasi Utama */}
+        <nav>
+          <ul>
+            <li className="mb-4 text-sm font-semibold text-slate-500 uppercase tracking-wider">
+              Menu
+            </li>
+            {menuItems.map((item) => (
+              <li key={item.name} className="mb-2">
+                <Link
+                  href={item.href}
+                  className={`flex items-center p-3 rounded-lg transition-all duration-300 ease-in-out group ${
+                    pathname === item.href
+                      ? "bg-blue-500 text-white shadow-lg" // Gaya untuk link aktif
+                      : "text-slate-400 hover:bg-slate-800 hover:text-white" // Gaya untuk link non-aktif
+                  }`}
+                >
+                  <item.icon size={20} className="mr-4 flex-shrink-0" />
+                  <span className="font-medium">{item.name}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* Menu Bawah (Profil/Logout) */}
+        <div>
+          <ul>
+            {/* Contoh link Pengaturan */}
+            <li className="mb-2">
               <Link
-                href={item.href}
-                className={`flex items-center p-2 rounded-lg transition-colors ${
-                  pathname === item.href
-                    ? "bg-blue-500 text-white" // Gaya untuk link aktif
-                    : "text-gray-300 hover:bg-gray-700 hover:text-white" // Gaya untuk link non-aktif
-                }`}
+                href="/dashboard/settings"
+                className="flex items-center p-3 rounded-lg transition-all duration-300 ease-in-out text-slate-400 hover:bg-slate-800 hover:text-white"
               >
-                {item.name}
+                <Settings size={20} className="mr-4" />
+                <span className="font-medium">Pengaturan</span>
               </Link>
             </li>
-          ))}
-        </ul>
-      </nav>
+          </ul>
+        </div>
+      </div>
     </aside>
   );
 }
