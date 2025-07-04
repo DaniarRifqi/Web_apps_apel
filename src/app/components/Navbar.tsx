@@ -67,25 +67,11 @@ export default function Navbar() {
 
           {/* Bagian Kanan: Notifikasi & Profil Pengguna */}
           <div className="flex items-center space-x-5">
-            {/* Tombol Notifikasi */}
-            <button
-              type="button"
-              className="p-2 rounded-full text-gray-500 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-              aria-label="Notifikasi"
-            >
-              <Bell size={22} />
-            </button>
-
             {/* Garis Pemisah Vertikal */}
             <div className="h-8 w-px bg-gray-200"></div>
 
             {/* Menu Profil Pengguna */}
             <div className="flex items-center space-x-3">
-              {/* <div className="text-right">
-                <div className="text-sm font-semibold text-gray-800">
-                  Nama Pengguna
-                </div>
-              </div> */}
               <button
                 type="button"
                 className="p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
