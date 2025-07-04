@@ -3,16 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, ScanLine, FileText, Settings } from "lucide-react"; // Import ikon dari lucide-react
+import { useLanguage } from './LanguageContext';
 
 // Daftar menu sidebar dengan ikon
 const menuItems = [
-  { name: "Home", href: "/dashboard/home", icon: Home },
-  { name: "Pengertian", href: "/dashboard/pengertian", icon: FileText },
-  { name: "Scan", href: "/dashboard/scan", icon: ScanLine },
+  { name: { id: "Home", en: "Home" }, href: "/dashboard/home", icon: Home },
+  { name: { id: "Pengertian", en: "Explanation" }, href: "/dashboard/pengertian", icon: FileText },
+  { name: { id: "Scan", en: "Scan" }, href: "/dashboard/scan", icon: ScanLine },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { language } = useLanguage();
 
   return (
     <aside className="w-64 bg-slate-900 text-slate-200 flex flex-col h-screen">
@@ -28,10 +30,10 @@ export default function Sidebar() {
         <nav>
           <ul>
             <li className="mb-4 text-sm font-semibold text-slate-500 uppercase tracking-wider">
-              Menu
+              {language === 'id' ? 'Menu' : 'Menu'}
             </li>
             {menuItems.map((item) => (
-              <li key={item.name} className="mb-2">
+              <li key={item.name.id} className="mb-2">
                 <Link
                   href={item.href}
                   className={`flex items-center p-3 rounded-lg transition-all duration-300 ease-in-out group ${
@@ -41,7 +43,7 @@ export default function Sidebar() {
                   }`}
                 >
                   <item.icon size={20} className="mr-4 flex-shrink-0" />
-                  <span className="font-medium">{item.name}</span>
+                  <span className="font-medium">{item.name[language]}</span>
                 </Link>
               </li>
             ))}
@@ -58,7 +60,7 @@ export default function Sidebar() {
                 className="flex items-center p-3 rounded-lg transition-all duration-300 ease-in-out text-slate-400 hover:bg-slate-800 hover:text-white"
               >
                 <Settings size={20} className="mr-4" />
-                <span className="font-medium">Pengaturan</span>
+                <span className="font-medium">{language === 'id' ? 'Pengaturan' : 'Settings'}</span>
               </Link>
             </li>
           </ul>

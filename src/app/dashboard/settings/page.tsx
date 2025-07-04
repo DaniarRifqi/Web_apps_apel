@@ -2,13 +2,19 @@
 
 import { useState } from 'react';
 import { Settings, Languages, Sun, Moon, HelpCircle, ScanLine, Upload, Camera, Cpu, ClipboardList, Save } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+import { useLanguage } from '../../components/LanguageContext';
 
 export default function SettingsPage() {
-  const [selectedLanguage, setSelectedLanguage] = useState('id');
-  const [theme, setTheme] = useState('light'); // State baru untuk tema
+  const { language, setLanguage } = useLanguage();
+
+  // Tambahkan state lokal untuk bahasa yang dipilih
+  const [selectedLanguage, setSelectedLanguage] = useState(language);
 
   const handleSaveSettings = () => {
-    alert(`Pengaturan disimpan! Bahasa: ${selectedLanguage === 'id' ? 'Indonesia' : 'English'}, Tema: ${theme}`);
+    setLanguage(selectedLanguage);
+    toast.success(selectedLanguage === 'id' ? 'Bahasa berhasil diubah!' : 'Language changed successfully!');
   };
 
   // Data untuk langkah-langkah penggunaan
@@ -70,27 +76,12 @@ export default function SettingsPage() {
                 <select
                   id="language-select"
                   value={selectedLanguage}
-                  onChange={(e) => setSelectedLanguage(e.target.value)}
+                  onChange={(e) => setSelectedLanguage(e.target.value as 'id' | 'en')}
                   className="block w-full p-2.5 border border-slate-300 rounded-lg bg-slate-50 focus:ring-blue-500 focus:border-blue-500 transition"
                 >
                   <option value="id">Bahasa Indonesia</option>
                   <option value="en">English</option>
                 </select>
-              </div>
-
-              {/* Pengaturan Tema */}
-              <div>
-                 <label className="flex items-center text-md font-semibold text-slate-700 mb-2">
-                   {theme === 'light' ? <Sun size={18} className="mr-2" /> : <Moon size={18} className="mr-2" />} Tema Tampilan
-                 </label>
-                 <div className="flex rounded-lg border border-slate-300 p-1 bg-slate-50">
-                    <button onClick={() => setTheme('light')} className={`w-1/2 p-2 text-sm font-semibold rounded-md transition ${theme === 'light' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'}`}>
-                      Terang
-                    </button>
-                    <button onClick={() => setTheme('dark')} className={`w-1/2 p-2 text-sm font-semibold rounded-md transition ${theme === 'dark' ? 'bg-slate-800 shadow-sm text-white' : 'text-slate-500'}`}>
-                      Gelap
-                    </button>
-                 </div>
               </div>
             </div>
             
@@ -99,7 +90,7 @@ export default function SettingsPage() {
               className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition shadow-sm"
             >
               <Save size={20} />
-              Simpan Pengaturan
+              {language === 'id' ? 'Simpan Pengaturan' : 'Save Settings'}
             </button>
           </div>
 
@@ -107,7 +98,9 @@ export default function SettingsPage() {
           <div className="lg:col-span-2 bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
             <div className="flex items-center mb-6">
               <HelpCircle className="text-green-600" size={28} />
-              <h2 className="text-2xl font-bold text-slate-800 ml-3">Cara Menggunakan Aplikasi</h2>
+              <h2 className="text-2xl font-bold text-slate-800 ml-3">
+                {language === 'id' ? 'Cara Menggunakan Aplikasi' : 'How to Use the App'}
+              </h2>
             </div>
             
             {/* Timeline/Stepper */}
@@ -121,9 +114,9 @@ export default function SettingsPage() {
                     </div>
                     <div className="ml-6">
                       <h3 className="flex items-center text-lg font-bold text-slate-800">
-                        <step.icon size={20} className="mr-2 text-green-600" /> {step.title}
+                        <step.icon size={20} className="mr-2 text-green-600" /> {language === 'id' ? step.title : (index === 0 ? 'Open Scan Page' : index === 1 ? 'Choose Image Source' : index === 2 ? 'Start Analysis' : 'View Results')}
                       </h3>
-                      <p className="mt-1 text-slate-600">{step.description}</p>
+                      <p className="mt-1 text-slate-600">{language === 'id' ? step.description : (index === 0 ? "Select 'Scan' from the sidebar to start identification." : index === 1 ? "Upload an image from your gallery or use the camera to take a photo of the apple. Make sure the image is clear and focused." : index === 2 ? "Click 'Identify Now' and our system will analyze the image using AI." : "The classification result (Dry, Medium, Wet) will be displayed along with the confidence percentage.")}</p>
                     </div>
                   </li>
                 ))}

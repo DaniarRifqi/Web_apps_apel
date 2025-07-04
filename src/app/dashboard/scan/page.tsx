@@ -3,8 +3,10 @@
 import { useState, useRef, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import { ScanLine, Upload, Camera, FileImage, Loader2, X, RefreshCcw, Info } from 'lucide-react';
+import { useLanguage } from '../../components/LanguageContext';
 
 export default function ScanPage() {
+  const { language } = useLanguage();
   // --- State Management (Sama seperti sebelumnya) ---
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string>('');
@@ -31,37 +33,37 @@ export default function ScanPage() {
 const handleUpload = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!selectedImage) {
-      alert('Silakan pilih berkas gambar terlebih dahulu.');
+      alert(language === 'id' ? 'Silakan pilih berkas gambar terlebih dahulu.' : 'Please select an image file first.');
       return;
     }
     setLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1500)); // Simulasi proses API
-    
-    const kering = Math.random() * 100;
-    const sedang = Math.random() * (100 - kering);
-    const basah = 100 - kering - sedang;
+
+    // Math.random() hanya dijalankan di client setelah event
+    let kering = Math.random() * 100;
+    let sedang = Math.random() * (100 - kering);
+    let basah = 100 - kering - sedang;
 
     // Definisikan tipe untuk kategori agar lebih aman
     type Category = 'Kering' | 'Sedang' | 'Basah';
-    
-    const results: Record<Category, number> = { 
-      Kering: parseFloat(kering.toFixed(2)), 
-      Sedang: parseFloat(sedang.toFixed(2)), 
-      Basah: parseFloat(basah.toFixed(2)) 
+    const results: Record<Category, number> = {
+      Kering: parseFloat(kering.toFixed(2)),
+      Sedang: parseFloat(sedang.toFixed(2)),
+      Basah: parseFloat(basah.toFixed(2))
     };
-    
+
     setPredictionResults(results);
     setLoading(false);
 
     // FIX: Beritahu TypeScript bahwa `Object.keys` menghasilkan array of Category
-    const maxCategory = (Object.keys(results) as Category[]).reduce((a, b) => 
+    const maxCategory = (Object.keys(results) as Category[]).reduce((a, b) =>
       results[a] > results[b] ? a : b
     );
-    
     const maxConfidence = results[maxCategory];
-    
     setConclusion({
-      text: `Gambar teridentifikasi sebagai <strong>${maxCategory}</strong> dengan keyakinan ${maxConfidence}%.`,
+      text: language === 'id'
+        ? `Gambar teridentifikasi sebagai <strong>${maxCategory}</strong> dengan keyakinan ${maxConfidence}%.`
+        : `Image identified as <strong>${maxCategory === 'Kering' ? 'Dry' : maxCategory === 'Sedang' ? 'Medium' : 'Wet'}</strong> with confidence ${maxConfidence}%.`,
       type: maxCategory
     });
   };
@@ -121,10 +123,10 @@ const handleUpload = async (event: React.FormEvent) => {
             </div>
             <div className="ml-4">
               <h1 className="text-3xl font-bold text-slate-800">
-                Identifikasi Gambar Apel
+                {language === 'id' ? 'Identifikasi Gambar Apel' : 'Apple Image Identification'}
               </h1>
               <p className="text-md text-slate-500 mt-1">
-                Unggah gambar atau gunakan kamera untuk memulai analisis.
+                {language === 'id' ? 'Unggah gambar atau gunakan kamera untuk memulai analisis.' : 'Upload an image or use the camera to start analysis.'}
               </p>
             </div>
           </div>
@@ -135,8 +137,8 @@ const handleUpload = async (event: React.FormEvent) => {
               // --- Tampilan Awal (Input) ---
               <div className="text-center flex flex-col items-center">
                 <FileImage size={64} className="text-slate-300 mb-4" />
-                <h3 className="text-xl font-semibold text-slate-700">Pilih Sumber Gambar</h3>
-                <p className="text-slate-500 mt-1 mb-6">Pilih dari galeri Anda atau ambil foto baru.</p>
+                <h3 className="text-xl font-semibold text-slate-700">{language === 'id' ? 'Pilih Sumber Gambar' : 'Choose Image Source'}</h3>
+                <p className="text-slate-500 mt-1 mb-6">{language === 'id' ? 'Pilih dari galeri Anda atau ambil foto baru.' : 'Choose from your gallery or take a new photo.'}</p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <input type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="hidden" />
                   <button
@@ -144,14 +146,14 @@ const handleUpload = async (event: React.FormEvent) => {
                     className="flex items-center justify-center gap-2 w-full sm:w-auto bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition-all shadow-sm"
                   >
                     <Upload size={20} />
-                    Unggah File
+                    {language === 'id' ? 'Unggah File' : 'Upload File'}
                   </button>
                   <button
                     onClick={() => setShowCamera(true)}
                     className="flex items-center justify-center gap-2 w-full sm:w-auto bg-slate-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-slate-800 transition-all shadow-sm"
                   >
                     <Camera size={20} />
-                    Gunakan Kamera
+                    {language === 'id' ? 'Gunakan Kamera' : 'Use Camera'}
                   </button>
                 </div>
               </div>
@@ -160,13 +162,13 @@ const handleUpload = async (event: React.FormEvent) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                 {/* Kolom Kiri: Pratinjau Gambar */}
                 <div className="w-full">
-                  <h3 className="text-xl font-bold text-slate-800 mb-4">Pratinjau Gambar</h3>
+                  <h3 className="text-xl font-bold text-slate-800 mb-4">{language === 'id' ? 'Pratinjau Gambar' : 'Image Preview'}</h3>
                   <div className="relative aspect-square bg-slate-100 rounded-lg overflow-hidden border">
                     <img src={imageUrl} alt="Pratinjau Apel" className="w-full h-full object-cover" />
                     {loading && (
                       <div className="absolute inset-0 bg-black/60 flex flex-col justify-center items-center text-white">
                         <Loader2 size={48} className="animate-spin" />
-                        <p className="mt-4 font-semibold">Menganalisis...</p>
+                        <p className="mt-4 font-semibold">{language === 'id' ? 'Menganalisis...' : 'Analyzing...'}</p>
                       </div>
                     )}
                   </div>
@@ -177,12 +179,12 @@ const handleUpload = async (event: React.FormEvent) => {
                          disabled={loading || !!predictionResults}
                          className="w-full flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition disabled:bg-slate-400 disabled:cursor-not-allowed shadow-sm"
                        >
-                         {loading ? 'Memproses...' : '🚀 Identifikasi Sekarang'}
+                         {loading ? (language === 'id' ? 'Memproses...' : 'Processing...') : (language === 'id' ? '🚀 Identifikasi Sekarang' : '🚀 Identify Now')}
                        </button>
                      </form>
                      <button
                         onClick={handleReset}
-                        title="Reset"
+                        title={language === 'id' ? 'Reset' : 'Reset'}
                         className="p-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition"
                       >
                         <RefreshCcw size={20} />
@@ -192,31 +194,27 @@ const handleUpload = async (event: React.FormEvent) => {
 
                 {/* Kolom Kanan: Hasil Identifikasi */}
                 <div className="w-full">
-                  <h3 className="text-xl font-bold text-slate-800 mb-4">Hasil Analisis</h3>
+                  <h3 className="text-xl font-bold text-slate-800 mb-4">{language === 'id' ? 'Hasil Analisis' : 'Analysis Result'}</h3>
                   <div className="bg-slate-50 p-6 rounded-lg border min-h-[200px]">
                     {!predictionResults && !loading && (
                        <div className="text-center text-slate-500 flex flex-col items-center justify-center h-full">
                          <Info size={32} className="mb-2"/>
-                         <p>Hasil analisis akan ditampilkan di sini setelah gambar diidentifikasi.</p>
+                         <p>{language === 'id' ? 'Hasil analisis akan ditampilkan di sini setelah gambar diidentifikasi.' : 'The analysis result will be displayed here after the image is identified.'}</p>
                        </div>
                     )}
                     {predictionResults && (
-                      <div className="space-y-4">
-                        <div>
+                      <div>
+                        <ul className="mb-4">
                           {Object.entries(predictionResults).map(([key, value]) => (
-                            <div key={key} className="mb-3">
-                              <div className="flex justify-between items-center mb-1 text-sm">
-                                <span className="font-semibold text-slate-700">{key}</span>
-                                <span className="text-slate-500">{value}%</span>
-                              </div>
-                              <div className="w-full bg-slate-200 rounded-full h-2.5">
-                                <div className={`${conclusionStyles[key as 'Kering' | 'Sedang' | 'Basah'].split(' ')[0]} h-2.5 rounded-full`} style={{ width: `${value}%` }}></div>
-                              </div>
-                            </div>
+                            <li key={key} className="flex justify-between py-1">
+                              <span className="font-semibold">{language === 'id' ? key : (key === 'Kering' ? 'Dry' : key === 'Sedang' ? 'Medium' : 'Wet')}</span>
+                              <span>{value}%</span>
+                            </li>
                           ))}
-                        </div>
-                        <div className={`p-4 rounded-lg border-l-4 text-sm font-semibold ${conclusionStyles[conclusion.type]}`}
-                             dangerouslySetInnerHTML={{ __html: conclusion.text }} />
+                        </ul>
+                        <div className={`p-4 rounded-lg border-2 font-semibold text-center ${conclusionStyles[conclusion.type]}`}
+                          dangerouslySetInnerHTML={{ __html: language === 'id' ? conclusion.text : conclusion.type ? `Image identified as <strong>${conclusion.type === 'Kering' ? 'Dry' : conclusion.type === 'Sedang' ? 'Medium' : 'Wet'}</strong> with confidence ${predictionResults && predictionResults[conclusion.type] ? predictionResults[conclusion.type] : ''}%.` : '' }}
+                        />
                       </div>
                     )}
                   </div>
