@@ -63,32 +63,64 @@ export default function ScanPage() {
       return;
     }
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
 
-    let kering = Math.random() * 100;
-    let sedang = Math.random() * (100 - kering);
-    let basah = 100 - kering - sedang;
+    const formData = new FormData();
+    formData.append("data", selectedImage);
 
-    type Category = 'Kering' | 'Sedang' | 'Basah';
-    const results: Record<Category, number> = {
-      Kering: parseFloat(kering.toFixed(2)),
-      Sedang: parseFloat(sedang.toFixed(2)),
-      Basah: parseFloat(basah.toFixed(2))
-    };
+    try {
+      const res = await fetch("http://localhost:7860/api/predict/", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      // Gradio mengembalikan { data: [label, confidence] }
+      const label = data.data ? data.data[0] : null;
+      const confidence = data.data ? data.data[1] : null;
 
-    setPredictionResults(results);
+      let type: "Kering" | "Sedang" | "Basah" | "" = "";
+      if (label === "kering") type = "Kering";
+      else if (label === "sedang") type = "Sedang";
+      else if (label === "basah") type = "Basah";
+      else if (label === "Tidak terdeteksi") type = "";
+
+      // Tampilkan confidence dan label
+      if (label && confidence !== null) {
+        if (label === "Tidak terdeteksi") {
+          setPredictionResults(null);
+          setConclusion({
+            text: language === 'id'
+              ? `Gambar <strong>tidak terdeteksi</strong> (keyakinan ${confidence.toFixed(2)}%)`
+              : `Image <strong>not detected</strong> (confidence ${confidence.toFixed(2)}%)`,
+            type: ""
+          });
+        } else {
+          setPredictionResults({ [type]: parseFloat(confidence.toFixed(2)) });
+          setConclusion({
+            text: language === 'id'
+              ? `Gambar teridentifikasi sebagai <strong>${type}</strong> dengan keyakinan ${confidence.toFixed(2)}%.`
+              : `Image identified as <strong>${type === 'Kering' ? 'Dry' : type === 'Sedang' ? 'Medium' : 'Wet'}</strong> with confidence ${confidence.toFixed(2)}%.`,
+            type
+          });
+        }
+      } else {
+        setPredictionResults(null);
+        setConclusion({
+          text: language === 'id'
+            ? 'Gagal mendapatkan hasil prediksi dari backend.'
+            : 'Failed to get prediction from backend.',
+          type: ""
+        });
+      }
+    } catch (err) {
+      setPredictionResults(null);
+      setConclusion({
+        text: language === 'id'
+          ? 'Terjadi error saat menghubungi backend.'
+          : 'An error occurred while contacting backend.',
+        type: ""
+      });
+    }
     setLoading(false);
-    
-    const maxCategory = (Object.keys(results) as Category[]).reduce((a, b) =>
-      results[a] > results[b] ? a : b
-    );
-    const maxConfidence = results[maxCategory];
-    setConclusion({
-      text: language === 'id'
-        ? `Gambar teridentifikasi sebagai <strong>${maxCategory}</strong> dengan keyakinan ${maxConfidence}%.`
-        : `Image identified as <strong>${maxCategory === 'Kering' ? 'Dry' : maxCategory === 'Sedang' ? 'Medium' : 'Wet'}</strong> with confidence ${maxConfidence}%.`,
-      type: maxCategory
-    });
   };
 
   const handleReset = () => {
