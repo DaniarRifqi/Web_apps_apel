@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, useCallback } from 'react';
-import { ScanLine, Upload, FileImage, Loader2, RefreshCcw, Info } from 'lucide-react';
+import { ScanLine, Upload, FileImage, Loader2, RefreshCcw, Info, History as HistoryIcon, X, Calendar, Filter } from 'lucide-react';
 import { useLanguage } from '../../components/LanguageContext';
+import HistoryModal from './HistoryModal';
 
 export default function ScanPage() {
   const { language } = useLanguage();
@@ -14,6 +15,22 @@ export default function ScanPage() {
   const [conclusion, setConclusion] = useState<{ text: string, type: 'Kering' | 'Sedang' | 'Basah' | '' }>({ text: '', type: '' });
   const [loading, setLoading] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false); // State baru untuk drag & drop
+
+  // --- History State & Dummy Data ---
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState({ date: '', type: '' });
+  const dummyHistory = [
+    { id: 1, date: '2024-06-01', image: '/public/file.svg', type: 'Kering', confidence: 92.1 },
+    { id: 2, date: '2024-06-02', image: '/public/globe.svg', type: 'Sedang', confidence: 80.5 },
+    { id: 3, date: '2024-06-03', image: '/public/window.svg', type: 'Basah', confidence: 70.2 },
+    { id: 4, date: '2024-06-03', image: '/public/next.svg', type: 'Kering', confidence: 88.7 },
+    { id: 5, date: '2024-06-04', image: '/public/vercel.svg', type: 'Sedang', confidence: 75.0 },
+  ];
+  const filteredHistory = dummyHistory.filter(item => {
+    const matchDate = historyFilter.date ? item.date === historyFilter.date : true;
+    const matchType = historyFilter.type ? item.type === historyFilter.type : true;
+    return matchDate && matchType;
+  });
 
   // --- Refs ---
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -123,7 +140,7 @@ export default function ScanPage() {
           <div className="bg-green-100 p-3 rounded-full mb-3 sm:mb-0">
             <ScanLine size={28} className="text-green-600" />
           </div>
-          <div className="sm:ml-4 text-center sm:text-left">
+          <div className="sm:ml-4 text-center sm:text-left flex-1">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800">
               {language === 'id' ? 'Identifikasi Gambar Apel' : 'Apple Image Identification'}
             </h1>
@@ -132,9 +149,18 @@ export default function ScanPage() {
             </p>
           </div>
         </div>
-
+        {/* Modal History */}
+        <HistoryModal
+          open={showHistory}
+          onClose={() => setShowHistory(false)}
+          data={dummyHistory}
+          filter={historyFilter}
+          setFilter={setHistoryFilter}
+          language={language}
+        />
         {/* Konten Utama */}
         <div className="bg-white p-4 sm:p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm">
+          {/* Konten Utama */}
           {!imageUrl ? (
             // --- Tampilan Awal (Input & Drop Zone) ---
             <div
@@ -157,68 +183,80 @@ export default function ScanPage() {
             </div>
           ) : (
             // --- Tampilan Pratinjau & Hasil ---
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-start">
-              {/* Kolom Kiri: Pratinjau Gambar */}
-              <div className="w-full">
-                <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">{language === 'id' ? 'Pratinjau Gambar' : 'Image Preview'}</h3>
-                <div className="relative aspect-square bg-slate-100 rounded-lg overflow-hidden border">
-                  <img src={imageUrl} alt="Pratinjau Apel" className="w-full h-full object-cover" />
-                  {loading && (
-                    <div className="absolute inset-0 bg-black/60 flex flex-col justify-center items-center text-white">
-                      <Loader2 size={36} className="animate-spin" />
-                      <p className="mt-3 font-semibold text-sm">{language === 'id' ? 'Menganalisis...' : 'Analyzing...'}</p>
-                    </div>
-                  )}
-                </div>
-                <div className="mt-3 sm:mt-4 flex gap-2 sm:gap-4 flex-col sm:flex-row">
-                    <form onSubmit={handleUpload} className="w-full">
-                      <button
-                        type="submit"
-                        disabled={loading || !!predictionResults}
-                        className="w-full flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-2 sm:py-3 px-4 sm:px-4 rounded-lg hover:bg-green-700 transition disabled:bg-slate-400 disabled:cursor-not-allowed shadow-sm text-sm sm:text-base"
-                      >
-                        {loading ? (language === 'id' ? 'Memproses...' : 'Processing...') : (language === 'id' ? '🚀 Identifikasi Sekarang' : '🚀 Identify Now')}
-                      </button>
-                    </form>
-                    <button
-                      onClick={handleReset}
-                      title={language === 'id' ? 'Reset' : 'Reset'}
-                      className="p-2 sm:p-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition text-sm sm:text-base"
-                    >
-                      <RefreshCcw size={18} />
-                    </button>
-                </div>
-              </div>
-
-              {/* Kolom Kanan: Hasil Identifikasi */}
-              <div className="w-full">
-                <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">{language === 'id' ? 'Hasil Analisis' : 'Analysis Result'}</h3>
-                <div className="bg-slate-50 p-4 sm:p-6 rounded-lg border min-h-[120px] sm:min-h-[200px]">
-                  {!predictionResults && !loading && (
-                      <div className="text-center text-slate-500 flex flex-col items-center justify-center h-full">
-                        <Info size={24} className="mb-2"/>
-                        <p className="text-xs sm:text-base">{language === 'id' ? 'Hasil analisis akan ditampilkan di sini setelah gambar diidentifikasi.' : 'The analysis result will be displayed here after the image is identified.'}</p>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-start">
+                {/* Kolom Kiri: Pratinjau Gambar */}
+                <div className="w-full">
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">{language === 'id' ? 'Pratinjau Gambar' : 'Image Preview'}</h3>
+                  <div className="relative aspect-square bg-slate-100 rounded-lg overflow-hidden border">
+                    <img src={imageUrl} alt="Pratinjau Apel" className="w-full h-full object-cover" />
+                    {loading && (
+                      <div className="absolute inset-0 bg-black/60 flex flex-col justify-center items-center text-white">
+                        <Loader2 size={36} className="animate-spin" />
+                        <p className="mt-3 font-semibold text-sm">{language === 'id' ? 'Menganalisis...' : 'Analyzing...'}</p>
                       </div>
-                  )}
-                  {predictionResults && (
-                    <div>
-                      <ul className="mb-3 sm:mb-4">
-                        {Object.entries(predictionResults).map(([key, value]) => (
-                          <li key={key} className="flex justify-between py-1 text-sm sm:text-base">
-                            <span className="font-semibold">{language === 'id' ? key : (key === 'Kering' ? 'Dry' : key === 'Sedang' ? 'Medium' : 'Wet')}</span>
-                            <span>{value}%</span>
-                          </li>
-                        ))}
-                      </ul>
-                      <div className={`p-3 sm:p-4 rounded-lg border-2 font-semibold text-center text-xs sm:text-base ${conclusionStyles[conclusion.type]}`}
-                        dangerouslySetInnerHTML={{ __html: language === 'id' ? conclusion.text : conclusion.type ? `Image identified as <strong>${conclusion.type === 'Kering' ? 'Dry' : conclusion.type === 'Sedang' ? 'Medium' : 'Wet'}</strong> with confidence ${predictionResults && predictionResults[conclusion.type] ? predictionResults[conclusion.type] : ''}%.` : '' }}
-                      />
-                    </div>
-                  )}
+                    )}
+                  </div>
+                  <div className="mt-3 sm:mt-4 flex gap-2 sm:gap-4 flex-col sm:flex-row">
+                      <form onSubmit={handleUpload} className="w-full">
+                        <button
+                          type="submit"
+                          disabled={loading || !!predictionResults}
+                          className="w-full flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-2 sm:py-3 px-4 sm:px-4 rounded-lg hover:bg-green-700 transition disabled:bg-slate-400 disabled:cursor-not-allowed shadow-sm text-sm sm:text-base"
+                        >
+                          {loading ? (language === 'id' ? 'Memproses...' : 'Processing...') : (language === 'id' ? '🚀 Identifikasi Sekarang' : '🚀 Identify Now')}
+                        </button>
+                      </form>
+                      <button
+                        onClick={handleReset}
+                        title={language === 'id' ? 'Reset' : 'Reset'}
+                        className="p-2 sm:p-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition text-sm sm:text-base"
+                      >
+                        <RefreshCcw size={18} />
+                      </button>
+                  </div>
+                </div>
+
+                {/* Kolom Kanan: Hasil Identifikasi */}
+                <div className="w-full">
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">{language === 'id' ? 'Hasil Analisis' : 'Analysis Result'}</h3>
+                  <div className="bg-slate-50 p-4 sm:p-6 rounded-lg border min-h-[120px] sm:min-h-[200px]">
+                    {!predictionResults && !loading && (
+                        <div className="text-center text-slate-500 flex flex-col items-center justify-center h-full">
+                          <Info size={24} className="mb-2"/>
+                          <p className="text-xs sm:text-base">{language === 'id' ? 'Hasil analisis akan ditampilkan di sini setelah gambar diidentifikasi.' : 'The analysis result will be displayed here after the image is identified.'}</p>
+                        </div>
+                    )}
+                    {predictionResults && (
+                      <div>
+                        <ul className="mb-3 sm:mb-4">
+                          {Object.entries(predictionResults).map(([key, value]) => (
+                            <li key={key} className="flex justify-between py-1 text-sm sm:text-base">
+                              <span className="font-semibold">{language === 'id' ? key : (key === 'Kering' ? 'Dry' : key === 'Sedang' ? 'Medium' : 'Wet')}</span>
+                              <span>{value}%</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <div className={`p-3 sm:p-4 rounded-lg border-2 font-semibold text-center text-xs sm:text-base ${conclusionStyles[conclusion.type]}`}
+                          dangerouslySetInnerHTML={{ __html: language === 'id' ? conclusion.text : conclusion.type ? `Image identified as <strong>${conclusion.type === 'Kering' ? 'Dry' : conclusion.type === 'Sedang' ? 'Medium' : 'Wet'}</strong> with confidence ${predictionResults && predictionResults[conclusion.type] ? predictionResults[conclusion.type] : ''}%.` : '' }}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            </>
           )}
+          {/* Button History selalu muncul di bawah card */}
+          <div className="flex justify-end mt-6">
+            <button
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition text-sm font-semibold"
+              onClick={() => setShowHistory(true)}
+            >
+              <HistoryIcon size={18} />
+              {language === 'id' ? 'Riwayat' : 'History'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
