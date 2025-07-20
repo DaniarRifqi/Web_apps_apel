@@ -65,17 +65,18 @@ export default function ScanPage() {
     setLoading(true);
 
     const formData = new FormData();
-    formData.append("data", selectedImage);
+    formData.append("file", selectedImage); // Ganti 'data' ke 'file'
 
     try {
-      const res = await fetch("http://localhost:7860/api/predict/", {
+      const res = await fetch("http://localhost:5000/api/predict/", {
         method: "POST",
         body: formData,
       });
       const data = await res.json();
-      // Gradio mengembalikan { data: [label, confidence] }
-      const label = data.data ? data.data[0] : null;
-      const confidence = data.data ? data.data[1] : null;
+      console.log('Response from backend:', data);
+      // Flask mengembalikan { label: ..., confidence: ... }
+      const label = data.label;
+      const confidence = data.confidence;
 
       let type: "Kering" | "Sedang" | "Basah" | "" = "";
       if (label === "kering") type = "Kering";
@@ -84,7 +85,7 @@ export default function ScanPage() {
       else if (label === "Tidak terdeteksi") type = "";
 
       // Tampilkan confidence dan label
-      if (label && confidence !== null) {
+      if (label && confidence !== null && confidence !== undefined) {
         if (label === "Tidak terdeteksi") {
           setPredictionResults(null);
           setConclusion({
@@ -256,7 +257,13 @@ export default function ScanPage() {
                     {!predictionResults && !loading && (
                         <div className="text-center text-slate-500 flex flex-col items-center justify-center h-full">
                           <Info size={24} className="mb-2"/>
-                          <p className="text-xs sm:text-base">{language === 'id' ? 'Hasil analisis akan ditampilkan di sini setelah gambar diidentifikasi.' : 'The analysis result will be displayed here after the image is identified.'}</p>
+                          <p className="text-xs sm:text-base" dangerouslySetInnerHTML={{
+                            __html: conclusion.text
+                              ? conclusion.text
+                              : (language === 'id'
+                                  ? 'Hasil analisis akan ditampilkan di sini setelah gambar diidentifikasi.'
+                                  : 'The analysis result will be displayed here after the image is identified.')
+                          }} />
                         </div>
                     )}
                     {predictionResults && (
