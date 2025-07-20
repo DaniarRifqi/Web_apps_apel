@@ -52,10 +52,10 @@ export default function SettingsPage() {
           </div>
           <div className="sm:ml-4 text-center sm:text-left">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800">
-              Pengaturan & Bantuan
+              { language === 'id' ? 'Pengaturan & Bantuan' : 'Setting & Help'}
             </h1>
             <p className="text-sm sm:text-md text-slate-500 mt-1">
-              Kelola preferensi aplikasi dan lihat panduan penggunaan.
+              {language === 'id' ? 'Kelola preferensi aplikasi dan lihat panduan penggunaan.' : 'Manage app preferences and view the usage guide.'}
             </p>
           </div>
         </div>
@@ -66,12 +66,13 @@ export default function SettingsPage() {
           {/* Kolom Kiri: Pengaturan */}
           <div className="lg:col-span-1 space-y-4 sm:space-y-8">
             <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-sm">
-              <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">Preferensi</h2>
-              
+              <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">
+                {language === 'id' ? 'Preferensi' : 'Preference'}
+              </h2>
               {/* Pengaturan Bahasa */}
               <div className="mb-4 sm:mb-6">
                 <label htmlFor="language-select" className="flex items-center text-sm sm:text-md font-semibold text-slate-700 mb-2">
-                  <Languages size={16} className="mr-2" /> Bahasa
+                  <Languages size={16} className="mr-2" /> {language === 'id' ? 'Bahasa' : 'Language'}
                 </label>
                 <select
                   id="language-select"
