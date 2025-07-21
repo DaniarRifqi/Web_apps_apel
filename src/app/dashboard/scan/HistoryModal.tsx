@@ -34,9 +34,19 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ open, onClose, data, filter
   });
 
   // Hapus satu
-  const handleDelete = (id: number) => {
-    setLocalHistory(h => h.filter(item => item.id !== id));
-    setSelected(null);
+  const handleDelete = async (id: number) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/history/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setLocalHistory(h => h.filter(item => item.id !== id));
+        setSelected(null);
+      } else {
+        alert('Gagal menghapus data di server!');
+      }
+    } catch (err) {
+      alert('Gagal menghubungi server!');
+    }
   };
   // Hapus semua
   const handleDeleteAll = () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { ScanLine, Upload, FileImage, Loader2, RefreshCcw, Info, History as HistoryIcon, X, Calendar, Filter } from 'lucide-react';
 import { useLanguage } from '../../components/LanguageContext';
 import HistoryModal from './HistoryModal';
@@ -16,21 +16,32 @@ export default function ScanPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false); // State baru untuk drag & drop
 
-  // --- History State & Dummy Data ---
+  // --- History State & Data dari Backend ---
   const [showHistory, setShowHistory] = useState(false);
   const [historyFilter, setHistoryFilter] = useState({ date: '', type: '' });
-  const dummyHistory = [
-    { id: 1, date: '2024-06-01', image: '/public/file.svg', type: 'Kering', confidence: 92.1 },
-    { id: 2, date: '2024-06-02', image: '/public/globe.svg', type: 'Sedang', confidence: 80.5 },
-    { id: 3, date: '2024-06-03', image: '/public/window.svg', type: 'Basah', confidence: 70.2 },
-    { id: 4, date: '2024-06-03', image: '/public/next.svg', type: 'Kering', confidence: 88.7 },
-    { id: 5, date: '2024-06-04', image: '/public/vercel.svg', type: 'Sedang', confidence: 75.0 },
-  ];
-  const filteredHistory = dummyHistory.filter(item => {
-    const matchDate = historyFilter.date ? item.date === historyFilter.date : true;
-    const matchType = historyFilter.type ? item.type === historyFilter.type : true;
-    return matchDate && matchType;
-  });
+  const [historyData, setHistoryData] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  useEffect(() => {
+    if (showHistory) {
+      setLoadingHistory(true);
+      fetch('http://localhost:5000/api/history/')
+        .then(res => res.json())
+        .then(data => {
+          // Tambahkan base URL backend ke field image
+          const formatted = data.map((item: any) => ({
+            ...item,
+            image: item.image.startsWith('http')
+              ? item.image
+              : `http://localhost:5000${item.image}`,
+            date: item.date ? item.date.slice(0, 10) : '',
+          }));
+          setHistoryData(formatted);
+          setLoadingHistory(false);
+        })
+        .catch(() => setLoadingHistory(false));
+    }
+  }, [showHistory]);
 
   // --- Refs ---
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -186,7 +197,7 @@ export default function ScanPage() {
         <HistoryModal
           open={showHistory}
           onClose={() => setShowHistory(false)}
-          data={dummyHistory}
+          data={historyData}
           filter={historyFilter}
           setFilter={setHistoryFilter}
           language={language}
