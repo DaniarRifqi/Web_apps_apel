@@ -1,91 +1,104 @@
 'use client';
+import React, { useRef, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { BookOpen, ThermometerSun, CheckCircle2, Droplets } from "lucide-react";
 import { useLanguage } from '../../components/LanguageContext';
 
 export default function PengertianPage() {
   const { language } = useLanguage();
+  const router = useRouter();
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard')) {
+      router.replace('/');
+    }
+  }, [router]);
+
+  // Animasi stepper saat scroll
+  const stepperRef = useRef<HTMLDivElement>(null);
+  const [showStepper, setShowStepper] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!stepperRef.current) return;
+      const rect = stepperRef.current.getBoundingClientRect();
+      if (rect.top < window.innerHeight - 100) {
+        setShowStepper(true);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    // Wrapper utama dengan background lembut dan padding
-    <div className="bg-slate-50 min-h-full p-4 sm:p-6 md:p-12">
-      <div className="max-w-5xl mx-auto">
-        {/* Header Halaman */}
-        <div className="flex flex-col sm:flex-row items-center border-b border-slate-200 pb-4 sm:pb-6 mb-6 sm:mb-8">
-          <div className="bg-blue-100 p-3 rounded-full mb-3 sm:mb-0">
-            <BookOpen size={28} className="text-blue-600" />
+    <section id="pengertian" className="relative min-h-[70vh] flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-green-100 py-16 md:py-24 overflow-hidden">
+      {/* Accent Shape/Blob */}
+      <div className="absolute -top-32 -left-32 w-[400px] h-[400px] bg-green-200 rounded-full blur-3xl opacity-30 z-0" />
+      <div className="absolute bottom-0 right-0 w-[300px] h-[200px] bg-green-100 rounded-full blur-2xl opacity-20 z-0" />
+      <div className="w-full max-w-5xl mx-auto px-4 relative z-10">
+        {/* Header Section */}
+        <div className="flex flex-col items-center mb-10">
+          <div className="bg-green-100 p-4 rounded-full mb-4 shadow">
+            <BookOpen size={40} className="text-green-600" />
           </div>
-          <div className="sm:ml-4 text-center sm:text-left">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-green-800 mb-2 text-center drop-shadow-sm">
               {language === 'id' ? 'Tentang Identifikasi Apel' : 'About Apple Identification'}
-            </h1>
-            <p className="text-sm sm:text-md text-slate-500 mt-1">
+          </h2>
+          <p className="text-base md:text-lg text-gray-600 text-center max-w-2xl">
               {language === 'id' ? 'Pahami tujuan dan kategori yang digunakan dalam aplikasi ini.' : 'Understand the purpose and categories used in this app.'}
             </p>
-          </div>
         </div>
-
-        {/* Bagian Tujuan Identifikasi */}
-        <div className="bg-white p-5 sm:p-8 rounded-xl border border-slate-200 mb-8 sm:mb-10">
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2 sm:mb-3">
+        {/* Card Tujuan Identifikasi */}
+        <div className="bg-white/70 backdrop-blur-md p-6 md:p-10 rounded-2xl border border-green-200 shadow-xl mb-12">
+          <h3 className="text-xl md:text-2xl font-bold text-green-800 mb-3">
             {language === 'id' ? '🎯 Tujuan Identifikasi' : '🎯 Identification Purpose'}
-          </h2>
-          <p className="text-slate-600 leading-relaxed text-justify text-sm sm:text-base">
+          </h3>
+          <p className="text-gray-700 leading-relaxed text-justify text-base">
             {language === 'id'
               ? 'Tujuan utama dari sistem "DryApple-Scan" adalah untuk mengidentifikasikan kondisi permukaan buah apel berdasarkan tingkat kelembapan atau kekeringannya. Identifikasi ini sangat penting dalam manajemen pasca-panen untuk menentukan penanganan yang tepat, apakah apel layak untuk disimpan dalam waktu lama, dijual langsung sebagai buah segar, atau harus segera diolah. Dengan deteksi otomatis, proses penyortiran menjadi lebih efisien, konsisten, dan dapat mengurangi potensi kerugian akibat kerusakan buah.'
               : 'The main goal of the "DryApple-Scan" system is to identify the surface condition of apples based on their moisture or dryness level. This identification is crucial in post-harvest management to determine the right handling, whether the apple is suitable for long-term storage, direct sale as fresh fruit, or needs immediate processing. With automatic detection, the sorting process becomes more efficient, consistent, and can reduce potential losses due to fruit spoilage.'}
           </p>
         </div>
-
-        {/* Bagian Kategori dalam Grid */}
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4 sm:mb-6 text-center">
-            {language === 'id' ? 'Kategori Tingkat Kekeringan Apel' : 'Apple Dryness Level Categories'}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
-            {/* Kartu: Kering */}
-            <div className="bg-white p-4 sm:p-6 rounded-xl border-t-4 border-orange-500 shadow-md flex flex-col">
-              <div className="flex items-center mb-3 sm:mb-4">
-                <ThermometerSun size={20} className="text-orange-600" />
-                <h3 className="text-lg sm:text-xl font-bold text-orange-800 ml-2 sm:ml-3">
-                  {language === 'id' ? 'KERING' : 'DRY'}
+        {/* Stepper Kategori */}
+        <div className="flex flex-col items-center">
+          <h3 className="text-xl md:text-2xl font-bold text-green-800 mb-8 text-center">
+            {language === 'id' ? 'Progres Tingkat Kekeringan Apel' : 'Apple Dryness Level Progress'}
                 </h3>
+          <div ref={stepperRef} className="flex flex-row items-start justify-center gap-0 w-full max-w-3xl">
+            {/* Step: Basah */}
+            <div className={`flex-1 flex flex-col items-center transition-all duration-700 ease-out ${showStepper ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{transitionDelay: '0ms'}}>
+              <div className="w-16 h-16 flex items-center justify-center rounded-full bg-blue-100 border-4 border-blue-400 mb-3">
+                <Droplets size={32} className="text-blue-600" />
               </div>
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed flex-grow">
-                {language === 'id'
-                  ? 'Menandakan apel telah kehilangan banyak kelembapan. Ciri-cirinya meliputi kulit kusam, sedikit mengerut, dan tidak kencang. Umumnya sudah menurun tingkat kesegarannya, cocok untuk diolah menjadi produk kering.'
-                  : 'Indicates the apple has lost a lot of moisture. Characteristics include dull skin, slight wrinkling, and lack of firmness. Usually, freshness has decreased, suitable for processing into dried products.'}
-              </p>
+              <h4 className="text-lg font-bold text-blue-700 mb-2">{language === 'id' ? 'Basah' : 'Wet'}</h4>
+              <p className="text-gray-600 text-center text-base mb-4">{language === 'id' ? 'Permukaan apel masih basah, bisa karena pencucian, embun, atau awal pembusukan. Perlu penanganan segera.' : 'Apple surface is still wet, possibly due to washing, dew, or early spoilage. Requires immediate handling.'}</p>
             </div>
-            {/* Kartu: Sedang (Normal) */}
-            <div className="bg-white p-4 sm:p-6 rounded-xl border-t-4 border-green-500 shadow-md flex flex-col">
-              <div className="flex items-center mb-3 sm:mb-4">
-                <CheckCircle2 size={20} className="text-green-600" />
-                <h3 className="text-lg sm:text-xl font-bold text-green-800 ml-2 sm:ml-3">
-                  {language === 'id' ? 'SEDANG (Normal)' : 'MEDIUM (Normal)'}
-                </h3>
-              </div>
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed flex-grow">
-                {language === 'id'
-                  ? 'Ini adalah kondisi ideal. Permukaan apel terasa halus, kencang, dan berkilau alami. Memiliki hidrasi optimal, tekstur renyah, dan rasa maksimal. Standar kualitas tertinggi untuk konsumsi langsung.'
-                  : 'This is the ideal condition. The apple surface feels smooth, firm, and naturally shiny. It has optimal hydration, crisp texture, and maximum flavor. The highest quality standard for direct consumption.'}
-              </p>
+            {/* Connector */}
+            <div className={`flex flex-col items-center justify-center transition-all duration-700 ease-out ${showStepper ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{transitionDelay: '150ms'}}>
+              <div className="w-12 h-1 bg-green-200 mt-8 mb-8 md:mb-12 md:mt-12 rounded-full" />
             </div>
-            {/* Kartu: Basah */}
-            <div className="bg-white p-4 sm:p-6 rounded-xl border-t-4 border-blue-500 shadow-md flex flex-col">
-              <div className="flex items-center mb-3 sm:mb-4">
-                <Droplets size={20} className="text-blue-600" />
-                <h3 className="text-lg sm:text-xl font-bold text-blue-800 ml-2 sm:ml-3">
-                  {language === 'id' ? 'BASAH' : 'WET'}
-                </h3>
+            {/* Step: Sedang */}
+            <div className={`flex-1 flex flex-col items-center transition-all duration-700 ease-out ${showStepper ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{transitionDelay: '300ms'}}>
+              <div className="w-16 h-16 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-400 mb-3">
+                <CheckCircle2 size={32} className="text-green-600" />
               </div>
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed flex-grow">
-                {language === 'id'
-                  ? 'Terdapat butiran air jelas di permukaan karena pencucian, pengembunan, atau awal pembusukan. Kondisi ini dapat memicu jamur dan bakteri, sehingga memerlukan penanganan segera.'
-                  : 'There are visible water droplets on the surface due to washing, condensation, or early spoilage. This condition can trigger mold and bacteria, requiring immediate handling.'}
-              </p>
+              <h4 className="text-lg font-bold text-green-700 mb-2">{language === 'id' ? 'Sedang' : 'Medium'}</h4>
+              <p className="text-gray-600 text-center text-base mb-4">{language === 'id' ? 'Kondisi ideal: permukaan apel halus, kencang, dan berkilau. Siap konsumsi atau penyimpanan.' : 'Ideal condition: smooth, firm, and shiny apple surface. Ready for consumption or storage.'}</p>
+            </div>
+            {/* Connector */}
+            <div className={`flex flex-col items-center justify-center transition-all duration-700 ease-out ${showStepper ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{transitionDelay: '450ms'}}>
+              <div className="w-12 h-1 bg-orange-200 mt-8 mb-8 md:mb-12 md:mt-12 rounded-full" />
+            </div>
+            {/* Step: Kering */}
+            <div className={`flex-1 flex flex-col items-center transition-all duration-700 ease-out ${showStepper ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{transitionDelay: '600ms'}}>
+              <div className="w-16 h-16 flex items-center justify-center rounded-full bg-orange-100 border-4 border-orange-400 mb-3">
+                <ThermometerSun size={32} className="text-orange-600" />
+              </div>
+              <h4 className="text-lg font-bold text-orange-700 mb-2">{language === 'id' ? 'Kering' : 'Dry'}</h4>
+              <p className="text-gray-600 text-center text-base mb-4">{language === 'id' ? 'Apel telah kehilangan banyak kelembapan, kulit kusam dan mengerut. Cocok untuk diolah menjadi produk kering.' : 'Apple has lost a lot of moisture, skin is dull and wrinkled. Suitable for dried products.'}</p>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

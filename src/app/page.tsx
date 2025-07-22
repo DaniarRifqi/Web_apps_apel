@@ -1,9 +1,18 @@
-import { redirect } from 'next/navigation';
+import { LanguageProvider } from "./components/LanguageContext";
+import HomePage from "./dashboard/home/page";
+import ScanPage from "./dashboard/scan/page";
+import PengertianPage from "./dashboard/pengertian/page";
+import SettingsPage from "./dashboard/settings/page";
 
-export default function Home() {
-  // Arahkan langsung ke halaman home di dalam dasbor
-  redirect('/dashboard/home');
-  
-  // Return null atau loading component karena redirect akan terjadi di server
-  return null;
+export default function LandingPage() {
+  return (
+    <LanguageProvider>
+      <main className="bg-white">
+        <section id="home"><HomePage /></section>
+        <section id="scan"><ScanPage /></section>
+        <section id="pengertian"><PengertianPage /></section>
+        <section id="settings"><SettingsPage /></section>
+      </main>
+    </LanguageProvider>
+  );
 }

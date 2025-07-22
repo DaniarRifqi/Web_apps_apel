@@ -1,132 +1,66 @@
 "use client";
 
-import { Bell, Search, UserCircle } from "lucide-react"; // Import ikon yang relevan
-import { useLanguage } from './LanguageContext';
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
-export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
-  const { language } = useLanguage();
-  const router = useRouter();
-  // Daftar halaman utama
-  const pages = [
-    { name: language === 'id' ? 'Beranda' : 'Dashboard', path: '/dashboard/home' },
-    { name: language === 'id' ? 'Pengertian' : 'Explanation', path: '/dashboard/pengertian' },
-    { name: language === 'id' ? 'Scan' : 'Scan', path: '/dashboard/scan' },
-    { name: language === 'id' ? 'Pengaturan' : 'Settings', path: '/dashboard/settings' },
-  ];
-  const [search, setSearch] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false); // Untuk dropdown navigasi mobile
-  const filteredPages = search
-    ? pages.filter((page) =>
-        page.name.toLowerCase().includes(search.toLowerCase())
-      )
-    : [];
+const menu = [
+  { name: "Home", href: "#home" },
+  { name: "Pengertian", href: "#pengertian" },
+  { name: "Scan", href: "#scan" },
+  { name: "Settings", href: "#settings" },
+];
+
+const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, href: string) => {
+  e.preventDefault();
+  const id = href.replace('#', '');
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' });
+  }
+};
+
+const Navbar = () => {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 24);
+    };
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const textColor = scrolled ? 'text-green-800' : 'text-white';
+  const logoColor = scrolled ? '#4ade80' : '#fff';
+  const logoStroke = scrolled ? '#22c55e' : '#fff';
 
   return (
-    <header className="bg-white border-b border-gray-200 w-full sticky top-0 z-10">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Hamburger menu untuk mobile */}
-          <div className="flex md:hidden items-center">
-            <button
-              className="p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onClick={onMenuClick}
-              aria-label="Open Menu"
-            >
-              <svg className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Bagian Kiri: Search Bar */}
-          <div className="relative flex-1 max-w-xs md:max-w-md lg:max-w-lg w-full mx-2">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-            <input
-              type="text"
-              value={search || ""}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setShowDropdown(true);
-              }}
-              onFocus={() => setShowDropdown(true)}
-              onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-              placeholder={language === 'id' ? 'Cari sesuatu...' : 'Search something...'}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm md:text-base"
-            />
-            {/* Dropdown suggestion */}
-            {showDropdown && filteredPages.length > 0 && (
-              <ul className="absolute left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-                {filteredPages.map((page) => (
-                  <li
-                    key={page.path}
-                    className="px-4 py-2 cursor-pointer hover:bg-blue-50"
-                    onMouseDown={() => {
-                      setSearch("");
-                      setShowDropdown(false);
-                      router.push(page.path);
-                    }}
-                  >
-                    {page.name}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {/* Bagian Kanan: Notifikasi & Profil Pengguna */}
-          <div className="hidden md:flex items-center space-x-5">
-            {/* Garis Pemisah Vertikal */}
-            <div className="h-8 w-px bg-gray-200"></div>
-            {/* Menu Profil Pengguna */}
-            <div className="flex items-center space-x-3">
-              <button
-                type="button"
-                className="p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                aria-label="Menu Pengguna"
-              >
-                <UserCircle size={36} className="text-gray-600" />
-              </button>
-            </div>
-          </div>
+    <nav
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300
+        ${scrolled ? 'bg-white/80 backdrop-blur shadow-md border-b border-gray-100' : 'bg-white/0'}
+      `}
+    >
+      <div className="w-full flex flex-row items-center justify-between px-8 md:px-12 py-2 md:py-3">
+        <div className="flex flex-row items-center gap-3 min-h-[36px]">
+          {/* Logo Apel SVG */}
+          
+          <span className={`font-bold ${textColor} text-lg md:text-xl tracking-tight transition-colors duration-300 leading-none`} style={{lineHeight: '1.2'}}>AppleDryness</span>
         </div>
-        {/* Dropdown menu untuk mobile */}
-        {menuOpen && (
-          <div className="md:hidden mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-20">
-            <nav>
-              <ul className="flex flex-col space-y-2">
-                {pages.map((page) => (
-                  <li key={page.path}>
-                    <button
-                      className="w-full text-left px-2 py-2 rounded hover:bg-blue-50 text-gray-700"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        router.push(page.path);
-                      }}
-                    >
-                      {page.name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-            <div className="flex items-center mt-4">
-              <button
-                type="button"
-                className="p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                aria-label="Menu Pengguna"
+        <ul className="flex flex-row items-center gap-6 md:gap-8">
+          {menu.map((item) => (
+            <li key={item.name} className="flex items-center">
+              <a
+                href={item.href}
+                onClick={e => handleNavClick(e, item.href)}
+                className={`${textColor} font-semibold hover:text-green-400 transition-colors duration-300 relative after:content-[''] after:block after:h-0.5 after:bg-green-400 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left after:mt-1 px-1`}
               >
-                <UserCircle size={32} className="text-gray-600" />
-              </button>
-            </div>
-          </div>
-        )}
+                {item.name}
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
-    </header>
+    </nav>
   );
-}
+};
+
+export default Navbar;

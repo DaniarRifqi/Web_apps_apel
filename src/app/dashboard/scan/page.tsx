@@ -1,12 +1,20 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useState, useRef, useCallback, useEffect as useEffect2 } from 'react';
 import { ScanLine, Upload, FileImage, Loader2, RefreshCcw, Info, History as HistoryIcon, X, Calendar, Filter } from 'lucide-react';
 import { useLanguage } from '../../components/LanguageContext';
 import HistoryModal from './HistoryModal';
 
 export default function ScanPage() {
   const { language } = useLanguage();
+  const router = useRouter();
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard')) {
+      router.replace('/');
+    }
+  }, [router]);
   
   // --- State Management ---
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -22,7 +30,7 @@ export default function ScanPage() {
   const [historyData, setHistoryData] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  useEffect(() => {
+  useEffect2(() => {
     if (showHistory) {
       setLoadingHistory(true);
       fetch('http://localhost:5000/api/history/')
@@ -176,21 +184,35 @@ export default function ScanPage() {
 
   // --- Render Komponen ---
   return (
-    <div className="bg-slate-50 min-h-full p-4 sm:p-6 md:p-12">
-      <div className="max-w-4xl mx-auto">
-        
-        {/* Header Halaman */}
-        <div className="flex flex-col sm:flex-row items-center border-b border-slate-200 pb-4 sm:pb-6 mb-6 sm:mb-8">
-          <div className="bg-green-100 p-3 rounded-full mb-3 sm:mb-0">
-            <ScanLine size={28} className="text-green-600" />
+    <section id="scan" className="relative min-h-[80vh] flex items-center justify-center bg-gradient-to-b from-white to-green-50 py-16 md:py-24">
+      <div className="w-full max-w-5xl mx-auto px-4">
+        {/* Header Section */}
+        <div className="flex flex-col items-center mb-10">
+          <div className="bg-green-100 p-4 rounded-full mb-4 shadow">
+            <ScanLine size={40} className="text-green-600" />
           </div>
-          <div className="sm:ml-4 text-center sm:text-left flex-1">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800">
-              {language === 'id' ? 'Identifikasi Gambar Apel' : 'Apple Image Identification'}
-            </h1>
-            <p className="text-sm sm:text-md text-slate-500 mt-1">
-              {language === 'id' ? 'Unggah atau seret gambar untuk memulai analisis.' : 'Upload or drag an image to start analysis.'}
-            </p>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-green-800 mb-2 text-center drop-shadow-sm">
+            {language === 'id' ? 'AI Scan & Identifikasi Apel' : 'AI Scan & Apple Identification'}
+          </h2>
+          <p className="text-base md:text-lg text-gray-600 text-center max-w-2xl">
+            {language === 'id' ? 'Unggah gambar apel, biarkan AI kami menganalisis tingkat kekeringan secara otomatis dan akurat.' : 'Upload an apple image and let our AI analyze the dryness level automatically and accurately.'}
+          </p>
+        </div>
+        {/* Stepper / Timeline */}
+        <div className="flex items-center justify-center gap-4 mb-10">
+          <div className="flex flex-col items-center">
+            <div className={`w-10 h-10 flex items-center justify-center rounded-full border-2 ${!imageUrl ? 'border-green-500 bg-green-100' : 'border-green-300 bg-green-50'} text-green-700 font-bold text-lg`}>1</div>
+            <span className="mt-2 text-xs md:text-sm font-semibold text-green-700">{language === 'id' ? 'Upload' : 'Upload'}</span>
+          </div>
+          <div className="h-1 w-8 bg-green-200 rounded-full" />
+          <div className="flex flex-col items-center">
+            <div className={`w-10 h-10 flex items-center justify-center rounded-full border-2 ${(imageUrl && !predictionResults) ? 'border-green-500 bg-green-100' : 'border-green-300 bg-green-50'} text-green-700 font-bold text-lg`}>2</div>
+            <span className="mt-2 text-xs md:text-sm font-semibold text-green-700">{language === 'id' ? 'Scan' : 'Scan'}</span>
+          </div>
+          <div className="h-1 w-8 bg-green-200 rounded-full" />
+          <div className="flex flex-col items-center">
+            <div className={`w-10 h-10 flex items-center justify-center rounded-full border-2 ${predictionResults ? 'border-green-500 bg-green-100' : 'border-green-300 bg-green-50'} text-green-700 font-bold text-lg`}>3</div>
+            <span className="mt-2 text-xs md:text-sm font-semibold text-green-700">{language === 'id' ? 'Hasil' : 'Result'}</span>
           </div>
         </div>
         {/* Modal History */}
@@ -202,113 +224,109 @@ export default function ScanPage() {
           setFilter={setHistoryFilter}
           language={language}
         />
-        {/* Konten Utama */}
-        <div className="bg-white p-4 sm:p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm">
-          {/* Konten Utama */}
+        {/* Card Utama */}
+        <div className="bg-white/90 p-6 md:p-10 rounded-2xl border border-green-100 shadow-xl">
           {!imageUrl ? (
             // --- Tampilan Awal (Input & Drop Zone) ---
             <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`text-center flex flex-col items-center p-6 sm:p-10 rounded-lg border-2 border-dashed transition-colors duration-200 ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-slate-300 bg-slate-50'}`}
+              className={`text-center flex flex-col items-center p-8 md:p-12 rounded-xl border-2 border-dashed transition-colors duration-200 ${isDragging ? 'border-green-400 bg-green-50' : 'border-green-200 bg-green-50/40'}`}
             >
-              <FileImage size={48} className={`transition-transform duration-200 ${isDragging ? 'scale-110' : ''} ${isDragging ? 'text-blue-500' : 'text-slate-300'}`} />
-              <h3 className="text-lg sm:text-xl font-semibold text-slate-700 mt-3 sm:mt-4">{language === 'id' ? 'Seret & Lepas Gambar di Sini' : 'Drag & Drop Image Here'}</h3>
-              <p className="text-slate-500 mt-1 mb-4 sm:mb-6 text-sm sm:text-base">{language === 'id' ? 'atau klik untuk memilih file' : 'or click to select a file'}</p>
+              <FileImage size={56} className={`transition-transform duration-200 ${isDragging ? 'scale-110 text-green-400' : 'text-green-300'}`} />
+              <h3 className="text-xl md:text-2xl font-semibold text-green-800 mt-4 mb-2">{language === 'id' ? 'Seret & Lepas Gambar di Sini' : 'Drag & Drop Image Here'}</h3>
+              <p className="text-gray-500 mb-6 text-base">{language === 'id' ? 'atau klik untuk memilih file' : 'or click to select a file'}</p>
               <input type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="hidden" />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto bg-blue-600 text-white font-semibold py-2 sm:py-3 px-4 sm:px-6 rounded-lg hover:bg-blue-700 transition-all shadow-sm text-sm sm:text-base"
+                className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all text-base md:text-lg"
               >
-                <Upload size={18} />
+                <Upload size={20} />
                 {language === 'id' ? 'Pilih File' : 'Choose File'}
               </button>
             </div>
           ) : (
             // --- Tampilan Pratinjau & Hasil ---
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-start">
-                {/* Kolom Kiri: Pratinjau Gambar */}
-                <div className="w-full">
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">{language === 'id' ? 'Pratinjau Gambar' : 'Image Preview'}</h3>
-                  <div className="relative aspect-square bg-slate-100 rounded-lg overflow-hidden border">
-                    <img src={imageUrl} alt="Pratinjau Apel" className="w-full h-full object-cover" />
-                    {loading && (
-                      <div className="absolute inset-0 bg-black/60 flex flex-col justify-center items-center text-white">
-                        <Loader2 size={36} className="animate-spin" />
-                        <p className="mt-3 font-semibold text-sm">{language === 'id' ? 'Menganalisis...' : 'Analyzing...'}</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-3 sm:mt-4 flex gap-2 sm:gap-4 flex-col sm:flex-row">
-                      <form onSubmit={handleUpload} className="w-full">
-                        <button
-                          type="submit"
-                          disabled={loading || !!predictionResults}
-                          className="w-full flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-2 sm:py-3 px-4 sm:px-4 rounded-lg hover:bg-green-700 transition disabled:bg-slate-400 disabled:cursor-not-allowed shadow-sm text-sm sm:text-base"
-                        >
-                          {loading ? (language === 'id' ? 'Memproses...' : 'Processing...') : (language === 'id' ? '🚀 Identifikasi Sekarang' : '🚀 Identify Now')}
-                        </button>
-                      </form>
-                      <button
-                        onClick={handleReset}
-                        title={language === 'id' ? 'Reset' : 'Reset'}
-                        className="p-2 sm:p-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition text-sm sm:text-base"
-                      >
-                        <RefreshCcw size={18} />
-                      </button>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+              {/* Kolom Kiri: Pratinjau Gambar */}
+              <div className="w-full">
+                <h3 className="text-lg md:text-xl font-bold text-green-800 mb-3">{language === 'id' ? 'Pratinjau Gambar' : 'Image Preview'}</h3>
+                <div className="relative aspect-square bg-green-50 rounded-xl overflow-hidden border border-green-200">
+                  <img src={imageUrl} alt="Pratinjau Apel" className="w-full h-full object-cover" />
+                  {loading && (
+                    <div className="absolute inset-0 bg-black/60 flex flex-col justify-center items-center text-white">
+                      <Loader2 size={36} className="animate-spin" />
+                      <p className="mt-3 font-semibold text-sm">{language === 'id' ? 'Menganalisis...' : 'Analyzing...'}</p>
+                    </div>
+                  )}
                 </div>
-
-                {/* Kolom Kanan: Hasil Identifikasi */}
-                <div className="w-full">
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">{language === 'id' ? 'Hasil Analisis' : 'Analysis Result'}</h3>
-                  <div className="bg-slate-50 p-4 sm:p-6 rounded-lg border min-h-[120px] sm:min-h-[200px]">
-                    {!predictionResults && !loading && (
-                        <div className="text-center text-slate-500 flex flex-col items-center justify-center h-full">
-                          <Info size={24} className="mb-2"/>
-                          <p className="text-xs sm:text-base" dangerouslySetInnerHTML={{
-                            __html: conclusion.text
-                              ? conclusion.text
-                              : (language === 'id'
-                                  ? 'Hasil analisis akan ditampilkan di sini setelah gambar diidentifikasi.'
-                                  : 'The analysis result will be displayed here after the image is identified.')
-                          }} />
-                        </div>
-                    )}
-                    {predictionResults && (
-                      <div>
-                        <ul className="mb-3 sm:mb-4">
-                          {Object.entries(predictionResults).map(([key, value]) => (
-                            <li key={key} className="flex justify-between py-1 text-sm sm:text-base">
-                              <span className="font-semibold">{language === 'id' ? key : (key === 'Kering' ? 'Dry' : key === 'Sedang' ? 'Medium' : 'Wet')}</span>
-                              <span>{value}%</span>
-                            </li>
-                          ))}
-                        </ul>
-                        <div className={`p-3 sm:p-4 rounded-lg border-2 font-semibold text-center text-xs sm:text-base ${conclusionStyles[conclusion.type]}`}
-                          dangerouslySetInnerHTML={{ __html: language === 'id' ? conclusion.text : conclusion.type ? `Image identified as <strong>${conclusion.type === 'Kering' ? 'Dry' : conclusion.type === 'Sedang' ? 'Medium' : 'Wet'}</strong> with confidence ${predictionResults && predictionResults[conclusion.type] ? predictionResults[conclusion.type] : ''}%.` : '' }}
-                        />
-                      </div>
-                    )}
-                  </div>
+                <div className="mt-4 flex gap-3 flex-col sm:flex-row">
+                  <form onSubmit={handleUpload} className="w-full">
+                    <button
+                      type="submit"
+                      disabled={loading || !!predictionResults}
+                      className="w-full flex items-center justify-center gap-2 bg-green-600 text-white font-bold py-3 px-4 rounded-full hover:bg-green-700 transition disabled:bg-slate-400 disabled:cursor-not-allowed shadow text-base"
+                    >
+                      {loading ? (language === 'id' ? 'Memproses...' : 'Processing...') : (language === 'id' ? '🚀 Identifikasi Sekarang' : '🚀 Identify Now')}
+                    </button>
+                  </form>
+                  <button
+                    onClick={handleReset}
+                    title={language === 'id' ? 'Reset' : 'Reset'}
+                    className="p-3 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition text-base"
+                  >
+                    <RefreshCcw size={20} />
+                  </button>
                 </div>
               </div>
-            </>
+              {/* Kolom Kanan: Hasil Identifikasi */}
+              <div className="w-full">
+                <h3 className="text-lg md:text-xl font-bold text-green-800 mb-3">{language === 'id' ? 'Hasil Analisis' : 'Analysis Result'}</h3>
+                <div className="bg-green-50/70 p-6 rounded-xl border border-green-200 min-h-[160px]">
+                  {!predictionResults && !loading && (
+                    <div className="text-center text-gray-500 flex flex-col items-center justify-center h-full">
+                      <Info size={28} className="mb-2 text-green-400" />
+                      <p className="text-base" dangerouslySetInnerHTML={{
+                        __html: conclusion.text
+                          ? conclusion.text
+                          : (language === 'id'
+                              ? 'Hasil analisis akan ditampilkan di sini setelah gambar diidentifikasi.'
+                              : 'The analysis result will be displayed here after the image is identified.')
+                      }} />
+                    </div>
+                  )}
+                  {predictionResults && (
+                    <div>
+                      <ul className="mb-4">
+                        {Object.entries(predictionResults).map(([key, value]) => (
+                          <li key={key} className="flex justify-between py-1 text-base">
+                            <span className={`font-semibold px-3 py-1 rounded-full text-white ${key === 'Kering' ? 'bg-orange-500' : key === 'Sedang' ? 'bg-green-500' : 'bg-blue-500'}`}>{language === 'id' ? key : (key === 'Kering' ? 'Dry' : key === 'Sedang' ? 'Medium' : 'Wet')}</span>
+                            <span className="font-mono text-green-900">{value}%</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className={`p-4 rounded-lg border-2 font-semibold text-center text-base ${conclusionStyles[conclusion.type]}`}
+                        dangerouslySetInnerHTML={{ __html: language === 'id' ? conclusion.text : conclusion.type ? `Image identified as <strong>${conclusion.type === 'Kering' ? 'Dry' : conclusion.type === 'Sedang' ? 'Medium' : 'Wet'}</strong> with confidence ${predictionResults && predictionResults[conclusion.type] ? predictionResults[conclusion.type] : ''}%.` : '' }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
           {/* Button History selalu muncul di bawah card */}
-          <div className="flex justify-end mt-6">
+          <div className="flex justify-end mt-8">
             <button
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition text-sm font-semibold"
+              className="flex items-center gap-2 px-5 py-2 bg-green-500 text-white rounded-full shadow hover:bg-green-600 transition text-base font-semibold"
               onClick={() => setShowHistory(true)}
             >
-              <HistoryIcon size={18} />
+              <HistoryIcon size={20} />
               {language === 'id' ? 'Riwayat' : 'History'}
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
