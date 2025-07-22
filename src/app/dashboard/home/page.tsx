@@ -6,7 +6,7 @@ import { useLanguage } from '../../components/LanguageContext';
 
 // Gambar dried apple dari Unsplash (bisa diganti dengan gambar sendiri)
 const DRIED_APPLE_IMG =
-  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80';
+  'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?auto=format&fit=crop&w=1200&q=80';
 
 export default function HomePage() {
   const { language } = useLanguage();
